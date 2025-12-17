@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  # This is your PostgreSQL Database
+  db:
+    image: postgres:13
+    restart: always
+    environment:
+      # FIX: Corrected POSTGRES_USER
+      POSTGRES_USER: postgres 
+      # FIX: Corrected POSTGRES_PASSWORD and set your chosen password
+      POSTGRES_PASSWORD: onlyoffice_development 
+      # FIX: Corrected POSTGRES_DB
+      POSTGRES_DB: onlyoffice_development
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # This is your Go Backend Application
+  backend:
+    build: . # This tells Docker Compose to use your existing, excellent Dockerfile
+    restart: always
+    ports:
+      - "3000:3000" # Connects your computer's port 3000 to the container's port 3000
+    depends_on:
+      - db
+    environment:
+      # FIX: This now uses the correct password to connect to the db service
+      DATABASE_URL: "postgres://postgres:onlyoffice_development@db:5432/onlyoffice_development?sslmode=disable"
+      # Your Dockerfile already sets ADDR=0.0.0.0, but setting it here is good practice
+      ADDR: "0.0.0.0"
+
+  # This is the ONLYOFFICE Document Server
+  onlyoffice:
+    image: onlyoffice/documentserver
+    restart: always
+    ports:
+      - "80:80"
+    environment:
+      JWT_ENABLED: "false"
+
+volumes:
+  postgres_data:

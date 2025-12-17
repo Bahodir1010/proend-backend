@@ -1,0 +1,273 @@
+basePath: /api
+definitions:
+  actions.FormData:
+    properties:
+      fio:
+        example: Ali Valiyev
+        type: string
+      lavozim:
+        example: Dasturchi
+        type: string
+      order_type:
+        example: Ishga qabul qilish
+        type: string
+      oylik:
+        example: "3000000"
+        type: string
+      stavka:
+        example: "0.25"
+        type: string
+      username:
+        example: hr_manager
+        type: string
+    type: object
+  actions.InitDocumentRequest:
+    properties:
+      template_id:
+        example: 721517f6-1d11-49ad-9aad-c2f7b9b53f09
+        type: string
+    type: object
+  models.Document:
+    properties:
+      created_at:
+        type: string
+      filename:
+        type: string
+      fio:
+        description: '--- ADDED FIELDS ---'
+        type: string
+      id:
+        type: string
+      lavozim:
+        type: string
+      order_type:
+        type: string
+      oylik:
+        type: string
+      status:
+        type: string
+      stavka:
+        type: string
+      template_id:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  models.Template:
+    properties:
+      created_at:
+        type: string
+      file_id:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+      version:
+        type: integer
+    type: object
+host: localhost:3000
+info:
+  contact:
+    email: support@example.com
+    name: API Support
+  description: This is an API for creating and managing documents from templates.
+  license:
+    name: MIT
+  title: Document Generation API
+  version: "1.0"
+paths:
+  /documents/{document_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieves all saved information for a specific document by its
+        ID.
+      parameters:
+      - description: The ID of the document to retrieve
+        in: path
+        name: document_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Document'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get document details
+      tags:
+      - Documents
+  /documents/{document_id}/file:
+    get:
+      description: Serves the generated .docx file for viewing in an editor or for
+        downloading.
+      parameters:
+      - description: The ID of the document file to retrieve
+        in: path
+        name: document_id
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: The document file
+          schema:
+            type: file
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get the document file
+      tags:
+      - Documents
+  /documents/{document_id}/generate:
+    post:
+      consumes:
+      - application/json
+      description: Fills a document with data from a form and saves the data to the
+        database.
+      parameters:
+      - description: Document ID
+        in: path
+        name: document_id
+        required: true
+        type: string
+      - description: The form data to fill into the document
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/actions.FormData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update document content
+      tags:
+      - Documents
+  /documents/init:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new document by copying a specific template and returns
+        the new document's ID.
+      parameters:
+      - description: The ID of the template to use
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/actions.InitDocumentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Initialize a new document
+      tags:
+      - Documents
+  /templates:
+    get:
+      consumes:
+      - application/json
+      description: Gets a list of all available master document templates.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Template'
+            type: array
+      summary: List all templates
+      tags:
+      - Templates
+    post:
+      consumes:
+      - multipart/form-data
+      description: Uploads a new .docx template file and its name.
+      parameters:
+      - description: The .docx template file
+        in: formData
+        name: template_file
+        required: true
+        type: file
+      - description: A human-readable name for the template
+        in: formData
+        name: name
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Template'
+      summary: Create a new template
+      tags:
+      - Templates
+schemes:
+- http
+swagger: "2.0"
